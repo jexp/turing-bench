@@ -4,7 +4,7 @@ import sys
 import argparse
 from typing import List, Dict, Any, LiteralString, cast
 
-from .abstract_driver import AbstractDriver
+from turingbench.abstract_driver import AbstractDriver
 
 from neo4j import GraphDatabase
 

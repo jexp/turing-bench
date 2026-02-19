@@ -4,7 +4,7 @@ import sys
 import argparse
 from typing import List, Dict, Any, cast
 
-from .abstract_driver import AbstractDriver
+from turingbench.abstract_driver import AbstractDriver
 
 from turingdb import TuringDB
 
