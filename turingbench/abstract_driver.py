@@ -4,8 +4,8 @@ import argparse
 import time
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
+from math import sqrt
 from typing import List, Dict, Any
-from tabulate import tabulate
 
 
 @dataclass
@@ -66,38 +66,57 @@ class AbstractDriver(ABC):
         This method is generic and doesn't need to be overridden.
         """
         table = []
-        headers = ["Query", "Mean", "Min", "Max", "Median", "Query/sec", "Row count"]
+        headers = ["Query", "Warmups", "Tests", "Mean (ms)", "StdDev (%)", "Row count"]
+
+        from turingbench.abstract_warmup_driver import AbstractWarmupDriver
+        warmups = self.warmups if isinstance(self, AbstractWarmupDriver) else 0
 
         for query, times in results.query_times.items():
             times_sorted = sorted(times)
-            n = runs
             sum_ = sum(times_sorted)
-            mean = sum_ // n
-            min_ = times_sorted[0]
-            max_ = times_sorted[-1]
-            median = (
-                (times_sorted[n // 2 - 1] + times_sorted[n // 2]) // 2
-                if (n % 2 == 0)
-                else times_sorted[n // 2]
-            )
-            throughput = n / (sum_ / 1_000_000)  # n / total_seconds
+            mean = sum_ // runs
+            stddev = 100 * sqrt(sum((time - mean) ** 2 for time in times_sorted) / runs) / mean
 
             def ms(us):
-                return f"{us // 1_000}ms"
+                return f"{us / 1_000}"
 
             table.append(
                 [
                     query,
+                    str(warmups),
+                    str(runs),
                     ms(mean),
-                    ms(min_),
-                    ms(max_),
-                    ms(median),
-                    f"{throughput:.6f}",
+                    f"{stddev:.3f}",
                     f"{results.query_sizes.get(query, '?')}",
                 ]
             )
 
-        print(tabulate(table, headers=headers, tablefmt="grid"))
+        query_list = list()
+        results_table = list()
+
+        def format_md_row(row: list[str]) -> str:
+            return "| " + " | ".join(row) + " |"
+
+        def format_md_divider(header: list[str]) -> str:
+            return "|-" + "-|-".join("-" * len(column) for column in header) + "-|"
+
+        def format_md_query(query: str) -> str:
+            return f"```\n{query}\n```"
+
+        results_table.append(format_md_row(headers))
+        results_table.append(format_md_divider(headers))
+
+        for i, entry in enumerate(table):
+            query_num = i + 1
+            query_name = f"query-{query_num}"
+            query_list.append(f"{query_name}\n{format_md_query(entry[0])}")
+            table_row = [query_name] + entry[1:]
+            results_table.append(format_md_row(table_row))
+
+        print()
+        print("\n\n".join(query_list))
+        print()
+        print("\n".join(results_table))
 
     # DB-specific arguments (e.g. Neo4j password, etc.)
     @classmethod
