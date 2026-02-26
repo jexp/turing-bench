@@ -7,6 +7,8 @@ from dataclasses import dataclass, field
 from math import sqrt
 from typing import List, Dict, Any
 
+from tabulate import tabulate
+
 
 @dataclass
 class BenchmarkResult:
@@ -111,8 +113,11 @@ class AbstractDriver(ABC):
             query_name = f"query-{query_num}"
             query_list.append(f"{query_name}\n{format_md_query(entry[0])}")
             table_row = [query_name] + entry[1:]
+            table[i] = table_row
             results_table.append(format_md_row(table_row))
 
+        print()
+        print(tabulate(table, headers=headers, tablefmt="grid"))
         print()
         print("\n\n".join(query_list))
         print()
