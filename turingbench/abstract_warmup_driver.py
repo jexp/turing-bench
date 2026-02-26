@@ -22,20 +22,31 @@ class AbstractWarmupDriver(AbstractDriver, ABC):
         res = BenchmarkResult()
 
         for query in queries:
-            print(f"Running benchmarks for: {query}")
-            for _ in range(self.warmups):
-                _ = self.execute_query(query)
+            result_size: int | None = None
+            query_times = list()
+            exception: Exception | None = None
 
-            for _ in range(1, runs + 1):
-                query_timer = time.perf_counter_ns()
-                result = self.execute_query(query)
-                elapsed_us = (
-                    time.perf_counter_ns() - query_timer
-                ) // 1_000  # microseconds
+            try:
+                print(f"Running benchmarks for: {query}")
+                for _ in range(self.warmups):
+                    _ = self.execute_query(query)
 
-                res.query_times.setdefault(query, []).append(elapsed_us)
+                for _ in range(1, runs + 1):
+                    query_timer = time.perf_counter_ns()
+                    result = self.execute_query(query)
+                    elapsed_us = (
+                        time.perf_counter_ns() - query_timer
+                    ) // 1_000  # microseconds
 
-                if query not in res.query_sizes:
-                    res.query_sizes[query] = len(result)
+                    query_times.append(elapsed_us)
+
+                    if result_size is None:
+                        result_size = len(result)
+            except Exception as e:
+                exception = e
+
+            if exception is None:
+                res.query_times.setdefault(query, query_times)
+                res.query_sizes[query] = result_size
 
         return res
