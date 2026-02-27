@@ -78,7 +78,7 @@ class Neo4jOptimizedDriver(AbstractWarmupDriver):
 
 
 def main(args: argparse.Namespace) -> None:
-    driver = Neo4jDriver(args.runtime, args.warmups)
+    driver = Neo4jOptimizedDriver(args.runtime, args.warmups)
 
     try:
         if args.auth:
