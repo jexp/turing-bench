@@ -9,7 +9,7 @@ from turingbench.abstract_warmup_driver import AbstractWarmupDriver
 from neo4j import GraphDatabase
 
 
-class Neo4jOptimisedDriver(AbstractWarmupDriver):
+class Neo4jOptimizedDriver(AbstractWarmupDriver):
     """Neo4j-specific implementation of DatabaseBenchmark"""
     def __init__(self, runtime: str, warmups: int = 0):
         super().__init__(warmups)
@@ -39,7 +39,7 @@ class Neo4jOptimisedDriver(AbstractWarmupDriver):
         if self.parallel:
             query = f"CYPHER runtime = parallel\n{query}"
 
-        with self.driver.session(database=self.database) as session:
+        with self.driver.session(database=self.database, fetch_size=100_000) as session:
             return [dict(r) for r in session.run(cast(LiteralString, query))]
 
     def close(self) -> None:
@@ -78,7 +78,7 @@ class Neo4jOptimisedDriver(AbstractWarmupDriver):
 
 
 def main(args: argparse.Namespace) -> None:
-    driver = Neo4jOptimisedDriver(args.runtime, args.warmups)
+    driver = Neo4jDriver(args.runtime, args.warmups)
 
     try:
         if args.auth:
@@ -109,7 +109,7 @@ def main(args: argparse.Namespace) -> None:
 
 
 if __name__ == "__main__":
-    parser = Neo4jOptimisedDriver.create_argument_parser(description="Neo4j Benchmarking Tool")
+    parser = Neo4jOptimizedDriver.create_argument_parser(description="Neo4j Benchmarking Tool")
     args = parser.parse_args()
 
     main(args)

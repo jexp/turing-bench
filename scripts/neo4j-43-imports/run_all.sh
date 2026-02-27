@@ -32,8 +32,8 @@ bench turingdb stop || true
 ./0_download.sh $DATASET
 check_result
 
-./1_migrate.sh $DATASET
-check_result
+#./1_migrate.sh $DATASET
+# check_result
 
 ./2_gen_cypher.sh $DATASET
 check_result

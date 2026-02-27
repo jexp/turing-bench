@@ -1,5 +1,7 @@
 import argparse
 from turingbench.neo4j_driver import Neo4jDriver
+from turingbench.neo4j_driver_opt import Neo4jOptimizedDriver
+from turingbench.neo4j_driver_http import Neo4jHttpDriver
 from turingbench.turingdb_driver import TuringDBDriver
 
 if __name__ == "__main__":
@@ -26,6 +28,17 @@ if __name__ == "__main__":
         add_help=False,
     )
 
+    bench_group.add_parser(
+        "neo4j_opt",
+        parents=[Neo4jOptimizedDriver.create_argument_parser()],
+        add_help=False,
+    )
+
+    bench_group.add_parser(
+        "neo4j_http",
+        parents=[Neo4jHttpDriver.create_argument_parser()],
+        add_help=False,
+    )
     args = parser.parse_args()
 
     if args.benchmark == "turingdb":
@@ -34,6 +47,14 @@ if __name__ == "__main__":
         main(args)
     elif args.benchmark == "neo4j":
         from turingbench.neo4j_driver import main
+
+        main(args)
+    elif args.benchmark == "neo4j_opt":
+        from turingbench.neo4j_driver_opt import main
+
+        main(args)
+    elif args.benchmark == "neo4j_http":
+        from turingbench.neo4j_driver_http import main
 
         main(args)
     elif args.benchmark == "memgraph":
